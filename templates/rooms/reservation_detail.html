@@ -1,0 +1,124 @@
+{% extends 'base.html' %}
+{% block title %}Reservation Detail{% endblock %}
+{% block page_heading %}Reservation Detail{% endblock %}
+{% block content %}
+<div class="d-flex align-items-center gap-3 mb-4">
+  <a href="{% if is_admin %}{% url 'admin_reservations' %}{% else %}{% url 'reservation_list' %}{% endif %}"
+     class="btn btn-outline-gold btn-sm"><i class="bi bi-arrow-left me-1"></i>Back</a>
+  <div class="page-title mb-0">Reservation #{{ res.id|truncatechars:13 }}</div>
+</div>
+
+<div class="row g-4">
+  <div class="col-md-7">
+    <div class="card">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <span><i class="bi bi-calendar2-check me-2"></i>Booking Details</span>
+        <span class="badge-{{ res.status }}">{{ res.get_status_display }}</span>
+      </div>
+      <div class="card-body p-4">
+        <table class="table table-dark-custom mb-4">
+          <tr><th style="width:35%;color:var(--muted);font-size:.8rem">Room</th><td style="color:var(--gold-lt)">{{ res.room.name }} ({{ res.room.room_number }})</td></tr>
+          <tr><th style="color:var(--muted);font-size:.8rem">Room Type</th><td>{{ res.room.get_room_type_display }}</td></tr>
+          <tr><th style="color:var(--muted);font-size:.8rem">Check-in</th><td>{{ res.check_in }}</td></tr>
+          <tr><th style="color:var(--muted);font-size:.8rem">Check-out</th><td>{{ res.check_out }}</td></tr>
+          <tr><th style="color:var(--muted);font-size:.8rem">Nights</th><td>{{ res.nights }}</td></tr>
+          <tr><th style="color:var(--muted);font-size:.8rem">Guests</th><td>{{ res.guests_count }}</td></tr>
+          {% if is_admin %}
+          <tr><th style="color:var(--muted);font-size:.8rem">Guest Name</th><td>{{ res.guest.get_full_name|default:res.guest.username }}</td></tr>
+          <tr><th style="color:var(--muted);font-size:.8rem">Guest Email</th><td>{{ res.guest.email }}</td></tr>
+          {% endif %}
+          <tr><th style="color:var(--muted);font-size:.8rem">Special Requests</th><td>{{ res.special_requests|default:"—" }}</td></tr>
+          <tr><th style="color:var(--muted);font-size:.8rem">Price/Night</th><td>RM {{ res.room.price_per_night }}</td></tr>
+          <tr><th style="color:var(--muted);font-size:.8rem">Total</th><td style="color:var(--gold);font-size:1.1rem;font-weight:700">RM {{ res.total_price }}</td></tr>
+          <tr><th style="color:var(--muted);font-size:.8rem">Booked On</th><td style="color:var(--muted);font-size:.85rem">{{ res.created_at|date:"d M Y H:i" }}</td></tr>
+          <tr><th style="color:var(--muted);font-size:.8rem">Last Updated</th><td style="color:var(--muted);font-size:.85rem">{{ res.updated_at|date:"d M Y H:i" }}</td></tr>
+        </table>
+
+        <!-- Action buttons -->
+        <div class="d-flex gap-2 flex-wrap">
+
+          {% if is_admin %}
+            {% if res.status == 'pending' %}
+            <form method="post" action="{% url 'reservation_approve' res.pk %}">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-sm"
+                style="background:rgba(34,197,94,.15);color:#22c55e;border:1px solid rgba(34,197,94,.3);font-weight:600"
+                onclick="return confirm('Approve this reservation?')">
+                <i class="bi bi-check-circle me-1"></i>Approve
+              </button>
+            </form>
+            {% endif %}
+
+            {% if res.status == 'confirmed' %}
+            <form method="post" action="{% url 'reservation_checkin' res.pk %}">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-sm"
+                style="background:rgba(59,130,246,.15);color:#3b82f6;border:1px solid rgba(59,130,246,.3);font-weight:600"
+                onclick="return confirm('Check in this guest?')">
+                <i class="bi bi-box-arrow-in-right me-1"></i>Check In
+              </button>
+            </form>
+            {% endif %}
+
+            {% if res.status == 'checked_in' %}
+            <form method="post" action="{% url 'reservation_checkout' res.pk %}">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-sm"
+                style="background:rgba(168,85,247,.15);color:#a855f7;border:1px solid rgba(168,85,247,.3);font-weight:600"
+                onclick="return confirm('Check out this guest?')">
+                <i class="bi bi-box-arrow-right me-1"></i>Check Out
+              </button>
+            </form>
+            {% endif %}
+
+            <a href="{% url 'reservation_edit' res.pk %}" class="btn btn-gold btn-sm">
+              <i class="bi bi-pencil me-1"></i>Edit
+            </a>
+          {% endif %}
+
+          {% if res.status == 'pending' and not is_admin %}
+          <a href="{% url 'reservation_edit' res.pk %}" class="btn btn-gold btn-sm">
+            <i class="bi bi-pencil me-1"></i>Edit
+          </a>
+          {% endif %}
+
+          {% if res.status == 'pending' or res.status == 'confirmed' %}
+          <form method="post" action="{% url 'reservation_cancel' res.pk %}" class="d-inline">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-sm"
+              style="background:rgba(239,68,68,.1);color:#ef4444;border:1px solid rgba(239,68,68,.3)"
+              onclick="return confirm('Cancel this reservation?')">
+              <i class="bi bi-x-circle me-1"></i>Cancel
+            </button>
+          </form>
+          {% endif %}
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Status timeline -->
+  <div class="col-md-4">
+    <div class="card p-4">
+      <div style="color:var(--gold);font-size:.75rem;text-transform:uppercase;letter-spacing:1px;font-weight:600" class="mb-3">
+        <i class="bi bi-arrow-right-circle me-1"></i>Reservation Flow
+      </div>
+      {% for step, label, color in steps %}
+      <div class="d-flex align-items-center gap-3 mb-3">
+        <div style="width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:700;flex-shrink:0;
+          background:{{ color }};color:#fff">
+          {{ forloop.counter }}
+        </div>
+        <div>
+          <div style="font-size:.85rem;font-weight:500;color:{% if res.status == step %}var(--gold){% else %}var(--muted){% endif %}">
+            {{ label }}
+            {% if res.status == step %}<i class="bi bi-arrow-left ms-1" style="color:var(--gold);font-size:.7rem"></i>{% endif %}
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endblock %}

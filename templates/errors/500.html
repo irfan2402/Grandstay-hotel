@@ -1,0 +1,10 @@
+{% extends 'base.html' %}
+{% block title %}Error 500{% endblock %}
+{% block auth_content %}
+<div class="auth-card text-center">
+  <div style="font-size:5rem;font-weight:800;color:rgba(201,168,76,.15);line-height:1">500</div>
+  <h4 class="fw-bold mt-2" style="color:var(--text)">Oops!</h4>
+  <p style="color:var(--muted)">Something went wrong. Please try again.</p>
+  <a href="/" class="btn btn-gold mt-2 px-4">Go to Dashboard</a>
+</div>
+{% endblock %}

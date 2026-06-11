@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+{% block title %}Sign In{% endblock %}
+{% block auth_content %}
+<div class="auth-card">
+  <h5 class="fw-bold mb-1" style="color:var(--text)">Welcome Back</h5>
+  <p style="color:var(--muted);font-size:.83rem" class="mb-3">Sign in to manage your reservations</p>
+  <div class="gold-divider"></div>
+  <form method="post" novalidate autocomplete="off">
+    {% csrf_token %}
+    {% for field in form %}
+      <div class="mb-3">
+        <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+
+        {% if field.field.widget.input_type == 'password' %}
+        <div style="position:relative">
+          <input type="password"
+                 name="{{ field.html_name }}"
+                 id="{{ field.id_for_label }}"
+                 class="form-control {% if field.errors %}is-invalid{% endif %}"
+                 autocomplete="current-password"
+                 style="padding-right:42px">
+          <button type="button"
+            onclick="this.previousElementSibling ? null : null; var i=document.getElementById('{{ field.id_for_label }}'); var ic=document.getElementById('loginEye'); i.type=i.type==='password'?'text':'password'; ic.className=i.type==='password'?'bi bi-eye':'bi bi-eye-slash';"
+            style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--muted);cursor:pointer;padding:0;font-size:1rem">
+            <i class="bi bi-eye" id="loginEye"></i>
+          </button>
+        </div>
+        {% else %}
+        <input type="{{ field.field.widget.input_type }}"
+               name="{{ field.html_name }}"
+               id="{{ field.id_for_label }}"
+               class="form-control {% if field.errors %}is-invalid{% endif %}"
+               {% if field.value %}value="{{ field.value }}"{% endif %}
+               autocomplete="off">
+        {% endif %}
+        {% for err in field.errors %}<div class="invalid-feedback">{{ err }}</div>{% endfor %}
+      </div>
+    {% endfor %}
+    {% if form.non_field_errors %}
+      <div class="alert alert-danger small py-2">{{ form.non_field_errors }}</div>
+    {% endif %}
+    <button type="submit" class="btn btn-gold w-100 mt-2 py-2">
+      <i class="bi bi-box-arrow-in-right me-2"></i>Sign In
+    </button>
+  </form>
+  <p class="text-center mt-3 mb-0" style="font-size:.83rem;color:var(--muted)">
+    New guest? <a href="{% url 'register' %}" style="color:var(--gold)">Create account</a>
+  </p>
+</div>
+{% endblock %}

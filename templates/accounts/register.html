@@ -1,0 +1,214 @@
+{% extends 'base.html' %}
+{% block title %}Register{% endblock %}
+{% block auth_content %}
+<div class="auth-card">
+  <h5 class="fw-bold mb-1" style="color:var(--text)">Create Guest Account</h5>
+  <p style="color:var(--muted);font-size:.83rem" class="mb-3">Join GrandStay and book your stay</p>
+  <div class="gold-divider"></div>
+  <form method="post" novalidate autocomplete="off">
+    {% csrf_token %}
+
+    <!-- Username -->
+    <div class="mb-3">
+      <label class="form-label" for="id_username">Username</label>
+      <input type="text" name="username" id="id_username"
+             class="form-control {% if form.username.errors %}is-invalid{% endif %}"
+             value="{{ form.username.value|default:'' }}" autocomplete="off">
+      {% for err in form.username.errors %}<div class="invalid-feedback">{{ err }}</div>{% endfor %}
+    </div>
+
+    <!-- Email -->
+    <div class="mb-3">
+      <label class="form-label" for="id_email">Email</label>
+      <input type="email" name="email" id="id_email"
+             class="form-control {% if form.email.errors %}is-invalid{% endif %}"
+             value="{{ form.email.value|default:'' }}" autocomplete="off">
+      {% for err in form.email.errors %}<div class="invalid-feedback">{{ err }}</div>{% endfor %}
+    </div>
+
+    <!-- First Name -->
+    <div class="mb-3">
+      <label class="form-label" for="id_first_name">First Name</label>
+      <input type="text" name="first_name" id="id_first_name"
+             class="form-control {% if form.first_name.errors %}is-invalid{% endif %}"
+             value="{{ form.first_name.value|default:'' }}" autocomplete="off">
+      {% for err in form.first_name.errors %}<div class="invalid-feedback">{{ err }}</div>{% endfor %}
+    </div>
+
+    <!-- Last Name -->
+    <div class="mb-3">
+      <label class="form-label" for="id_last_name">Last Name</label>
+      <input type="text" name="last_name" id="id_last_name"
+             class="form-control {% if form.last_name.errors %}is-invalid{% endif %}"
+             value="{{ form.last_name.value|default:'' }}" autocomplete="off">
+      {% for err in form.last_name.errors %}<div class="invalid-feedback">{{ err }}</div>{% endfor %}
+    </div>
+
+    <!-- Phone -->
+    <div class="mb-3">
+      <label class="form-label" for="id_phone">Phone <span style="color:var(--muted)">(optional)</span></label>
+      <input type="text" name="phone" id="id_phone"
+             class="form-control {% if form.phone.errors %}is-invalid{% endif %}"
+             value="{{ form.phone.value|default:'' }}" autocomplete="off">
+      {% for err in form.phone.errors %}<div class="invalid-feedback">{{ err }}</div>{% endfor %}
+    </div>
+
+    <!-- Nationality -->
+    <div class="mb-3">
+      <label class="form-label" for="id_nationality">Nationality <span style="color:var(--muted)">(optional)</span></label>
+      <input type="text" name="nationality" id="id_nationality"
+             class="form-control {% if form.nationality.errors %}is-invalid{% endif %}"
+             value="{{ form.nationality.value|default:'' }}" autocomplete="off">
+      {% for err in form.nationality.errors %}<div class="invalid-feedback">{{ err }}</div>{% endfor %}
+    </div>
+
+    <!-- Password -->
+    <div class="mb-3">
+      <label class="form-label" for="pw1">Password</label>
+      <div style="position:relative">
+        <input type="password" name="password1" id="pw1"
+               class="form-control {% if form.password1.errors %}is-invalid{% endif %}"
+               autocomplete="new-password"
+               oninput="checkPassword(this.value)"
+               style="padding-right:44px">
+        <button type="button" onclick="togglePass('pw1','eye1')"
+          style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--muted);cursor:pointer;font-size:1.1rem;line-height:1">
+          <i class="bi bi-eye" id="eye1"></i>
+        </button>
+      </div>
+      {% for err in form.password1.errors %}
+        <div style="color:#ef4444;font-size:.78rem;margin-top:4px"><i class="bi bi-exclamation-circle me-1"></i>{{ err }}</div>
+      {% endfor %}
+
+      <!-- Live checklist -->
+      <div id="pwChecklist" style="margin-top:10px;padding:12px;background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:8px">
+        <div style="font-size:.7rem;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px;font-weight:600">Password Requirements</div>
+        <div class="pw-rule" id="rule-len">    <i class="bi bi-x-circle-fill"></i><span>At least 10 characters</span></div>
+        <div class="pw-rule" id="rule-letter"> <i class="bi bi-x-circle-fill"></i><span>At least one letter (a–z or A–Z)</span></div>
+        <div class="pw-rule" id="rule-number"> <i class="bi bi-x-circle-fill"></i><span>At least one number (0–9)</span></div>
+        <div class="pw-rule" id="rule-nocommon"><i class="bi bi-x-circle-fill"></i><span>Not a commonly used password</span></div>
+
+        <!-- Strength bar -->
+        <div style="margin-top:10px">
+          <div style="display:flex;justify-content:space-between;margin-bottom:5px">
+            <span style="font-size:.72rem;color:var(--muted)">Strength</span>
+            <span style="font-size:.72rem;font-weight:600;color:var(--muted)" id="strengthLabel">—</span>
+          </div>
+          <div style="background:rgba(255,255,255,.08);border-radius:4px;height:6px;overflow:hidden">
+            <div id="strengthBar" style="height:100%;width:0%;border-radius:4px;transition:width .3s,background .3s"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Confirm Password -->
+    <div class="mb-3">
+      <label class="form-label" for="pw2">Confirm Password</label>
+      <div style="position:relative">
+        <input type="password" name="password2" id="pw2"
+               class="form-control {% if form.password2.errors %}is-invalid{% endif %}"
+               autocomplete="new-password"
+               oninput="checkMatch(this.value)"
+               style="padding-right:44px">
+        <button type="button" onclick="togglePass('pw2','eye2')"
+          style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--muted);cursor:pointer;font-size:1.1rem;line-height:1">
+          <i class="bi bi-eye" id="eye2"></i>
+        </button>
+      </div>
+      <div id="matchMsg" style="font-size:.78rem;margin-top:5px;display:none"></div>
+      {% for err in form.password2.errors %}
+        <div style="color:#ef4444;font-size:.78rem;margin-top:4px"><i class="bi bi-exclamation-circle me-1"></i>{{ err }}</div>
+      {% endfor %}
+    </div>
+
+    <button type="submit" class="btn btn-gold w-100 mt-2 py-2">
+      <i class="bi bi-person-plus me-2"></i>Create Account
+    </button>
+  </form>
+  <p class="text-center mt-3 mb-0" style="font-size:.83rem;color:var(--muted)">
+    Already registered? <a href="{% url 'login' %}" style="color:var(--gold)">Sign in</a>
+  </p>
+</div>
+
+<style>
+.pw-rule {
+  display:flex; align-items:center; gap:8px;
+  font-size:.8rem; color:#888;
+  margin-bottom:6px; transition:color .2s;
+}
+.pw-rule i { font-size:.85rem; flex-shrink:0; color:#ef4444; transition:color .2s; }
+.pw-rule.pass { color:#22c55e; }
+.pw-rule.pass i { color:#22c55e; }
+</style>
+
+<script>
+const COMMON_PASSWORDS = ['password123','qwerty123','letmein12','welcome12','admin1234','iloveyou1','monkey123','dragon123','master123','sunshine1'];
+
+function togglePass(inputId, iconId) {
+  const inp = document.getElementById(inputId);
+  const ico = document.getElementById(iconId);
+  if (inp.type === 'password') {
+    inp.type = 'text';
+    ico.className = 'bi bi-eye-slash';
+  } else {
+    inp.type = 'password';
+    ico.className = 'bi bi-eye';
+  }
+}
+
+function setRule(id, pass) {
+  const el = document.getElementById(id);
+  if (!el) return pass;
+  const ico = el.querySelector('i');
+  if (pass) {
+    el.classList.add('pass');
+    ico.className = 'bi bi-check-circle-fill';
+  } else {
+    el.classList.remove('pass');
+    ico.className = 'bi bi-x-circle-fill';
+  }
+  return pass;
+}
+
+function checkPassword(pw) {
+  const username = (document.getElementById('id_username')?.value || '').toLowerCase();
+
+  const r1 = setRule('rule-len',      pw.length >= 10);
+  const r2 = setRule('rule-letter',   /[a-zA-Z]/.test(pw));
+  const r3 = setRule('rule-number',   /[0-9]/.test(pw));
+  const r4 = setRule('rule-nocommon', !COMMON_PASSWORDS.includes(pw.toLowerCase()));
+
+  const score = [r1, r2, r3, r4].filter(Boolean).length;
+  const bar   = document.getElementById('strengthBar');
+  const lbl   = document.getElementById('strengthLabel');
+
+  const levels = [
+    { w:'0%',   c:'#ef4444', t:'—' },
+    { w:'25%',  c:'#ef4444', t:'Very Weak' },
+    { w:'50%',  c:'#f59e0b', t:'Weak' },
+    { w:'75%',  c:'#eab308', t:'Good' },
+    { w:'100%', c:'#22c55e', t:'Strong' },
+  ];
+
+  const lvl = pw.length === 0 ? levels[0] : levels[score];
+  bar.style.width      = lvl.w;
+  bar.style.background = lvl.c;
+  lbl.textContent      = lvl.t;
+  lbl.style.color      = lvl.c;
+
+  checkMatch(document.getElementById('pw2')?.value || '');
+}
+
+function checkMatch(val) {
+  const pw1 = document.getElementById('pw1')?.value || '';
+  const msg = document.getElementById('matchMsg');
+  if (!val) { msg.style.display = 'none'; return; }
+  msg.style.display = 'block';
+  if (val === pw1) {
+    msg.innerHTML = '<i class="bi bi-check-circle-fill me-1" style="color:#22c55e"></i><span style="color:#22c55e">Passwords match</span>';
+  } else {
+    msg.innerHTML = '<i class="bi bi-x-circle-fill me-1" style="color:#ef4444"></i><span style="color:#ef4444">Passwords do not match</span>';
+  }
+}
+</script>
+{% endblock %}

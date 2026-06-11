@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+{% block title %}{{ title }}{% endblock %}
+{% block page_heading %}{{ title }}{% endblock %}
+{% block content %}
+<div class="page-title"><i class="bi bi-calendar2-plus me-2"></i>{{ title }}</div>
+<div class="row">
+  <div class="col-md-6">
+    <div class="card">
+      <div class="card-header">Reservation Details</div>
+      <div class="card-body p-4">
+        <form method="post" novalidate>
+          {% csrf_token %}
+          {% for field in form %}
+            <div class="mb-3">
+              <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+              {% if field.field.widget.input_type == 'select' or 'Select' in field.field.widget|stringformat:'s' %}
+                <select name="{{ field.html_name }}" id="{{ field.id_for_label }}"
+                        class="form-select {% if field.errors %}is-invalid{% endif %}">
+                  {% for val, lbl in field.field.choices %}
+                    <option value="{{ val }}" {% if field.value|stringformat:'s' == val|stringformat:'s' %}selected{% endif %}>{{ lbl }}</option>
+                  {% endfor %}
+                </select>
+              {% elif 'Textarea' in field.field.widget|stringformat:'s' %}
+                <textarea name="{{ field.html_name }}" id="{{ field.id_for_label }}"
+                          class="form-control {% if field.errors %}is-invalid{% endif %}"
+                          rows="3" maxlength="500">{{ field.value|default:'' }}</textarea>
+              {% else %}
+                <input type="{{ field.field.widget.input_type }}"
+                       name="{{ field.html_name }}"
+                       id="{{ field.id_for_label }}"
+                       class="form-control {% if field.errors %}is-invalid{% endif %}"
+                       value="{{ field.value|default:'' }}">
+              {% endif %}
+              {% for err in field.errors %}<div class="invalid-feedback">{{ err }}</div>{% endfor %}
+            </div>
+          {% endfor %}
+          <div class="d-flex gap-2 mt-4">
+            <button type="submit" class="btn btn-gold px-4">
+              <i class="bi bi-check2 me-1"></i>Confirm Reservation
+            </button>
+            <a href="{% url 'reservation_list' %}" class="btn btn-outline-gold">Cancel</a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="card p-3" style="border-color:rgba(201,168,76,.3)">
+      <div style="color:var(--gold);font-size:.75rem;text-transform:uppercase;letter-spacing:1px;font-weight:600" class="mb-2">
+        <i class="bi bi-info-circle me-1"></i>Booking Info
+      </div>
+      <p style="color:var(--muted);font-size:.83rem" class="mb-1">• Prices are per night in MYR</p>
+      <p style="color:var(--muted);font-size:.83rem" class="mb-1">• Max stay is 30 nights</p>
+      <p style="color:var(--muted);font-size:.83rem" class="mb-1">• Free cancellation for pending bookings</p>
+      <p style="color:var(--muted);font-size:.83rem" class="mb-0">• Check-in from 3:00 PM</p>
+    </div>
+  </div>
+</div>
+{% endblock %}

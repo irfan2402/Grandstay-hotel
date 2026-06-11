@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+{% block title %}Browse Rooms{% endblock %}
+{% block page_heading %}Browse Rooms{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div class="page-title mb-0"><i class="bi bi-door-open me-2"></i>Available Rooms</div>
+  <a href="{% url 'reservation_create' %}" class="btn btn-gold">
+    <i class="bi bi-plus-lg me-1"></i>Reserve Now
+  </a>
+</div>
+
+<!-- Filter bar -->
+<div class="d-flex gap-2 mb-4 flex-wrap">
+  <a href="?type=" class="btn btn-sm {% if not selected_type %}btn-gold{% else %}btn-outline-gold{% endif %}">All Types</a>
+  {% for code, label in room_types %}
+  <a href="?type={{ code }}" class="btn btn-sm {% if selected_type == code %}btn-gold{% else %}btn-outline-gold{% endif %}">{{ label }}</a>
+  {% endfor %}
+</div>
+
+<div class="row g-4">
+  {% for room in rooms %}
+  <div class="col-md-4 col-lg-3">
+    <div class="room-card h-100">
+      <div class="room-card-img">
+        {% if room.room_type == 'standard' %}<i class="bi bi-house-door"></i>
+        {% elif room.room_type == 'deluxe' %}<i class="bi bi-stars"></i>
+        {% elif room.room_type == 'suite' %}<i class="bi bi-gem"></i>
+        {% else %}<i class="bi bi-building-up"></i>{% endif %}
+      </div>
+      <div class="room-card-body">
+        <div class="room-type-badge">{{ room.get_room_type_display }}</div>
+        <h6 class="mt-1 mb-1" style="color:var(--text)">{{ room.name }}</h6>
+        <p style="color:var(--muted);font-size:.8rem" class="mb-2">
+          <i class="bi bi-building me-1"></i>Floor {{ room.floor }} &nbsp;
+          <i class="bi bi-people me-1"></i>{{ room.capacity }} guests &nbsp;
+          <i class="bi bi-door-closed me-1"></i>Room {{ room.room_number }}
+        </p>
+        {% if room.amenities %}
+        <p style="color:var(--muted);font-size:.76rem" class="mb-2">
+          <i class="bi bi-check2-circle me-1" style="color:var(--gold)"></i>{{ room.amenities }}
+        </p>
+        {% endif %}
+        <div class="d-flex justify-content-between align-items-center mt-3">
+          <div>
+            <div class="room-price">RM {{ room.price_per_night }}<span>/night</span></div>
+          </div>
+          <a href="{% url 'reservation_create_room' room.pk %}" class="btn btn-gold btn-sm">Book</a>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% empty %}
+  <div class="col-12 text-center py-5" style="color:var(--muted)">
+    <i class="bi bi-building-x" style="font-size:3rem;display:block;margin-bottom:.5rem"></i>
+    No rooms available for the selected filter.
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}
