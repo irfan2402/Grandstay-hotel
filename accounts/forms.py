@@ -1,17 +1,19 @@
+# accounts/forms.py - VULNERABLE VERSION (BEFORE HARDENING)
 import re
 from django import forms
 from django.contrib.auth.models import User
 from django.contrib.auth.forms import AuthenticationForm
 from .models import UserProfile
 
-USERNAME_RE = re.compile(r'^[a-zA-Z0-9_]{3,30}$')
-PHONE_RE    = re.compile(r'^\+?[\d\s\-]{7,20}$')
-NAME_RE     = re.compile(r'^[a-zA-Z\s\-]{1,50}$')
-
 
 class GuestRegistrationForm(forms.ModelForm):
-    password1   = forms.CharField(label='Password', widget=forms.PasswordInput(attrs={'autocomplete':'new-password'}), min_length=10)
-    password2   = forms.CharField(label='Confirm Password', widget=forms.PasswordInput(attrs={'autocomplete':'new-password'}))
+    # VULNERABLE: No minimum length enforcement
+    password1 = forms.CharField(
+        label='Password',
+        widget=forms.PasswordInput(attrs={'autocomplete': 'new-password'}),
+        # min_length=10  # DISABLED - no minimum length
+    )
+    password2   = forms.CharField(label='Confirm Password', widget=forms.PasswordInput())
     first_name  = forms.CharField(max_length=50)
     last_name   = forms.CharField(max_length=50)
     phone       = forms.CharField(max_length=20, required=False)
@@ -22,44 +24,34 @@ class GuestRegistrationForm(forms.ModelForm):
         fields = ['username', 'email', 'first_name', 'last_name']
 
     def clean_username(self):
+        # VULNERABLE: No whitelist validation - accepts any characters
+        # Attack: username = "<script>alert('XSS')</script>"
         u = self.cleaned_data['username'].strip()
-        if not USERNAME_RE.match(u):
-            raise forms.ValidationError('3-30 characters: letters, numbers, underscores only.')
         if User.objects.filter(username__iexact=u).exists():
             raise forms.ValidationError('Username already taken.')
         return u
 
     def clean_email(self):
+        # VULNERABLE: No email format validation
         e = self.cleaned_data['email'].strip().lower()
-        if User.objects.filter(email__iexact=e).exists():
-            raise forms.ValidationError('Email already registered.')
         return e
 
     def clean_first_name(self):
-        n = self.cleaned_data['first_name'].strip()
-        if not NAME_RE.match(n):
-            raise forms.ValidationError('Letters, spaces, hyphens only.')
-        return n
+        # VULNERABLE: No sanitization - accepts HTML/scripts
+        return self.cleaned_data['first_name'].strip()
 
     def clean_last_name(self):
-        n = self.cleaned_data['last_name'].strip()
-        if not NAME_RE.match(n):
-            raise forms.ValidationError('Letters, spaces, hyphens only.')
-        return n
+        # VULNERABLE: No sanitization
+        return self.cleaned_data['last_name'].strip()
 
     def clean_phone(self):
-        p = self.cleaned_data.get('phone', '').strip()
-        if p and not PHONE_RE.match(p):
-            raise forms.ValidationError('Enter a valid phone number.')
-        return p
+        # VULNERABLE: No format validation
+        return self.cleaned_data.get('phone', '').strip()
 
     def clean_password1(self):
-        pw = self.cleaned_data.get('password1', '')
-        if not re.search(r'[A-Za-z]', pw):
-            raise forms.ValidationError('Password must contain at least one letter.')
-        if not re.search(r'\d', pw):
-            raise forms.ValidationError('Password must contain at least one number.')
-        return pw
+        # VULNERABLE: No complexity requirements
+        # Accepts "123", "aaa", "password"
+        return self.cleaned_data.get('password1', '')
 
     def clean(self):
         cd = super().clean()
@@ -81,14 +73,17 @@ class GuestRegistrationForm(forms.ModelForm):
 
 
 class SecureLoginForm(AuthenticationForm):
-    username = forms.CharField(max_length=30, widget=forms.TextInput(attrs={'autocomplete': 'username'}))
-    password = forms.CharField(widget=forms.PasswordInput(attrs={'autocomplete': 'current-password'}))
+    username = forms.CharField(
+        max_length=150,  # VULNERABLE: Too long, no format check
+        widget=forms.TextInput(attrs={'autocomplete': 'username'})
+    )
+    password = forms.CharField(
+        widget=forms.PasswordInput(attrs={'autocomplete': 'current-password'})
+    )
 
     def clean_username(self):
-        u = self.cleaned_data['username'].strip()
-        if not USERNAME_RE.match(u):
-            raise forms.ValidationError('Invalid username format.')
-        return u
+        # VULNERABLE: No format validation - accepts any characters
+        return self.cleaned_data['username'].strip()
 
 
 class ProfileUpdateForm(forms.ModelForm):

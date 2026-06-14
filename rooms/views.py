@@ -1,3 +1,4 @@
+# rooms/views.py - VULNERABLE VERSION (BEFORE HARDENING)
 import logging
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
@@ -6,24 +7,31 @@ from django.views.decorators.cache import never_cache
 from django.contrib import messages
 from django.core.paginator import Paginator
 from django.http import Http404
+
 from .models import Room, Reservation
 from .forms import ReservationForm, AdminReservationForm, RoomForm
 from audit.models import AuditLog
 
 logger = logging.getLogger('security')
 
+
 def _ip(r):
     xff = r.META.get('HTTP_X_FORWARDED_FOR')
     return xff.split(',')[0].strip() if xff else r.META.get('REMOTE_ADDR','unknown')
+
 
 def _is_admin(user):
     try: return user.profile.is_admin
     except: return False
 
+
+# VULNERABLE: No proper admin check — just returns False always
+# Any user can potentially access admin pages
 def _admin_required(request):
     if not _is_admin(request.user):
         logger.warning(f"UNAUTHORIZED | user={request.user.username} | path={request.path}")
         raise Http404
+
 
 # ── Dashboard ────────────────────────────────────────────────
 @login_required
@@ -44,7 +52,8 @@ def dashboard(request):
         reservations = Reservation.objects.filter(guest=request.user).select_related('room')[:5]
         return render(request, 'rooms/dashboard.html', {'reservations': reservations, 'is_admin': False})
 
-# ── Room browsing (all users) ────────────────────────────────
+
+# ── Room browsing ─────────────────────────────────────────────
 @login_required
 @never_cache
 def room_list(request):
@@ -56,7 +65,8 @@ def room_list(request):
         'rooms': rooms, 'room_types': Room.ROOM_TYPES, 'selected_type': room_type
     })
 
-# ── Reservations ─────────────────────────────────────────────
+
+# ── Reservations ──────────────────────────────────────────────
 @login_required
 @never_cache
 def reservation_list(request):
@@ -64,6 +74,7 @@ def reservation_list(request):
     paginator = Paginator(res, 10)
     page = paginator.get_page(request.GET.get('page',1))
     return render(request, 'rooms/reservation_list.html', {'page': page, 'is_admin': _is_admin(request.user)})
+
 
 @login_required
 @never_cache
@@ -79,25 +90,27 @@ def reservation_create(request, room_pk=None):
         res.guest = request.user
         res.save()
         AuditLog.objects.create(user=request.user, action='RESERVATION_CREATE',
-            details=f'Reserved {res.room.name} | {res.check_in} – {res.check_out}', ip_address=_ip(request))
+            details=f'Reserved {res.room.name} | {res.check_in} - {res.check_out}', ip_address=_ip(request))
         messages.success(request, f'Room reserved! Total: RM {res.total_price:.2f}')
         return redirect('reservation_list')
     return render(request, 'rooms/reservation_form.html', {'form': form, 'title': 'New Reservation'})
 
+
 @login_required
 @never_cache
 def reservation_detail(request, pk):
-    if _is_admin(request.user):
-        res = get_object_or_404(Reservation, pk=pk)
-    else:
-        res = get_object_or_404(Reservation, pk=pk, guest=request.user)
+    # VULNERABLE: No ownership check — IDOR attack possible
+    # Any logged in user can view ANY reservation by changing UUID in URL
+    # Attack: Change UUID in browser URL to access other guests' bookings
+    res = get_object_or_404(Reservation, pk=pk)
     steps = [
         ("pending",    "Pending",    "#888"),
         ("confirmed",  "Confirmed",  "#22c55e"),
         ("checked_in", "Checked In", "#3b82f6"),
         ("checked_out","Checked Out","#a855f7"),
     ]
-    return render(request, "rooms/reservation_detail.html", {"res": res, "is_admin": _is_admin(request.user), "steps": steps})
+    return render(request, 'rooms/reservation_detail.html', {"res": res, "is_admin": _is_admin(request.user), "steps": steps})
+
 
 @login_required
 @never_cache
@@ -107,7 +120,8 @@ def reservation_edit(request, pk):
         res = get_object_or_404(Reservation, pk=pk)
         form_class = AdminReservationForm
     else:
-        res = get_object_or_404(Reservation, pk=pk, guest=request.user)
+        # VULNERABLE: No ownership check on edit
+        res = get_object_or_404(Reservation, pk=pk)
         if res.status != 'pending':
             messages.error(request, 'Only pending reservations can be edited.')
             return redirect('reservation_detail', pk=pk)
@@ -121,13 +135,15 @@ def reservation_edit(request, pk):
         return redirect('reservation_detail', pk=pk)
     return render(request, 'rooms/reservation_form.html', {'form': form, 'title': 'Edit Reservation', 'res': res})
 
+
 @login_required
 @require_http_methods(['POST'])
 def reservation_cancel(request, pk):
     if _is_admin(request.user):
         res = get_object_or_404(Reservation, pk=pk)
     else:
-        res = get_object_or_404(Reservation, pk=pk, guest=request.user)
+        # VULNERABLE: No ownership check on cancel
+        res = get_object_or_404(Reservation, pk=pk)
     if res.status in ('pending','confirmed'):
         res.status = 'cancelled'
         res.save()
@@ -138,13 +154,15 @@ def reservation_cancel(request, pk):
         messages.error(request, 'This reservation cannot be cancelled.')
     return redirect('reservation_list')
 
-# ── Admin Room Management ────────────────────────────────────
+
+# ── Admin Room Management ─────────────────────────────────────
 @login_required
 @never_cache
 def admin_room_list(request):
     _admin_required(request)
     rooms = Room.objects.all()
     return render(request, 'rooms/admin_room_list.html', {'rooms': rooms})
+
 
 @login_required
 @never_cache
@@ -160,6 +178,7 @@ def admin_room_create(request):
         return redirect('admin_room_list')
     return render(request, 'rooms/room_form.html', {'form': form, 'title': 'Add Room'})
 
+
 @login_required
 @never_cache
 @require_http_methods(['GET','POST'])
@@ -174,6 +193,7 @@ def admin_room_edit(request, pk):
         messages.success(request, 'Room updated.')
         return redirect('admin_room_list')
     return render(request, 'rooms/room_form.html', {'form': form, 'title': 'Edit Room', 'room': room})
+
 
 @login_required
 @never_cache
