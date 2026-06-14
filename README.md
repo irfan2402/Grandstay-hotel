@@ -142,8 +142,8 @@ python manage.py runserver
 ---
 
 ## 📦 Dependencies
-
-```Django==5.2.2
+```
+Django==5.2.2
 
 django-axes==8.3.1
 
@@ -152,11 +152,11 @@ bcrypt==4.2.1
 python-dotenv==1.2.2
 
 Pillow==11.2.1
-
+```
 ---
 
 ## 📁 Project Structure
-
+```
 Grandstay-hotel/
 
 ├── accounts/               # Authentication & user management
@@ -218,8 +218,8 @@ Grandstay-hotel/
 ├── requirements.txt        # Python dependencies
 
 └── setup_demo.py           # Demo accounts and room data setup
+```
 
----
 
 ## 🧪 Security Testing Summary
 
