@@ -1,4 +1,4 @@
-# hotelbook/settings.py - VULNERABLE VERSION (BEFORE HARDENING)
+# hotelbook/settings.py — HARDENED VERSION
 import os
 from pathlib import Path
 from dotenv import load_dotenv
@@ -7,14 +7,16 @@ load_dotenv()
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# VULNERABLE: Hardcoded secret key
-SECRET_KEY = 'hardcoded-insecure-secret-key-do-not-use-in-production-12345'
+# ── Core ──────────────────────────────────────────────────────────────────────
+# SECRET_KEY loaded from .env — never hardcoded
+SECRET_KEY = os.environ['DJANGO_SECRET_KEY']
 
-# VULNERABLE: Debug mode exposes stack traces and system info
-DEBUG = True
+# Debug MUST be False in production; read from .env
+DEBUG = os.getenv('DJANGO_DEBUG', 'False') == 'True'
 
-ALLOWED_HOSTS = ['*']  # VULNERABLE: Accepts all hostnames
+ALLOWED_HOSTS = os.getenv('DJANGO_ALLOWED_HOSTS', 'localhost 127.0.0.1').split()
 
+# ── Apps ──────────────────────────────────────────────────────────────────────
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -28,19 +30,17 @@ INSTALLED_APPS = [
     'audit',
 ]
 
+# ── Middleware ────────────────────────────────────────────────────────────────
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
-    # VULNERABLE: CSRF protection disabled — forms vulnerable to CSRF attacks
-    # 'django.middleware.csrf.CsrfViewMiddleware',
+    'django.middleware.csrf.CsrfViewMiddleware',          # CSRF protection ON
     'django.contrib.auth.middleware.AuthenticationMiddleware',
-    # VULNERABLE: No brute force protection — unlimited login attempts
-    # 'axes.middleware.AxesMiddleware',
+    'axes.middleware.AxesMiddleware',                      # Brute-force protection ON
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    # VULNERABLE: No security headers — missing CSP, X-Frame, X-Content
-    # 'hotelbook.middleware.SecurityHeadersMiddleware',
+    'hotelbook.middleware.SecurityHeadersMiddleware',       # CSP / security headers ON
     'hotelbook.middleware.AuditMiddleware',
 ]
 
@@ -71,55 +71,66 @@ DATABASES = {
     }
 }
 
-# VULNERABLE: No password validation — accepts weak passwords like "123"
-AUTH_PASSWORD_VALIDATORS = []
-
-# VULNERABLE: MD5 password hashing — easily cracked
-PASSWORD_HASHERS = [
-    'django.contrib.auth.hashers.MD5PasswordHasher',
+# ── Password security ─────────────────────────────────────────────────────────
+AUTH_PASSWORD_VALIDATORS = [
+    {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+     'OPTIONS': {'min_length': 10}},
+    {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
 ]
 
-# VULNERABLE: Session cookie accessible to JavaScript — XSS can steal it
-SESSION_COOKIE_HTTPONLY = False
-SESSION_COOKIE_SECURE = False
-# VULNERABLE: No SameSite — CSRF via cookie possible
-SESSION_COOKIE_SAMESITE = None
-# VULNERABLE: Session never expires — session hijacking risk
-SESSION_COOKIE_AGE = 999999
-SESSION_EXPIRE_AT_BROWSER_CLOSE = False
+# bcrypt via django-bcrypt compatible hasher (Argon2 / bcrypt both acceptable)
+PASSWORD_HASHERS = [
+    'django.contrib.auth.hashers.BCryptSHA256PasswordHasher',  # bcrypt — replaces MD5
+    'django.contrib.auth.hashers.PBKDF2PasswordHasher',        # fallback for legacy hashes
+]
 
-# VULNERABLE: CSRF cookie accessible to JavaScript
-CSRF_COOKIE_HTTPONLY = False
-CSRF_COOKIE_SECURE = False
-CSRF_COOKIE_SAMESITE = None
+# ── Session / Cookie hardening ────────────────────────────────────────────────
+SESSION_COOKIE_HTTPONLY  = True    # JS cannot read session cookie (XSS protection)
+SESSION_COOKIE_SECURE    = True    # HTTPS only
+SESSION_COOKIE_SAMESITE  = 'Lax'  # CSRF via cookie mitigated
+SESSION_COOKIE_AGE       = 3600   # 1 hour idle timeout
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 
-# VULNERABLE: No XSS filter
-SECURE_BROWSER_XSS_FILTER = False
-# VULNERABLE: MIME sniffing allowed
-SECURE_CONTENT_TYPE_NOSNIFF = False
-# VULNERABLE: Clickjacking possible via iframe
-X_FRAME_OPTIONS = 'SAMEORIGIN'
+CSRF_COOKIE_HTTPONLY  = True
+CSRF_COOKIE_SECURE    = True
+CSRF_COOKIE_SAMESITE  = 'Lax'
 
+# ── Security headers ──────────────────────────────────────────────────────────
+SECURE_BROWSER_XSS_FILTER    = True
+SECURE_CONTENT_TYPE_NOSNIFF  = True
+X_FRAME_OPTIONS              = 'DENY'        # Clickjacking: deny all framing
+SECURE_HSTS_SECONDS          = 31536000      # HSTS 1 year
+SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+SECURE_SSL_REDIRECT          = not DEBUG     # Force HTTPS in production
+
+# ── Brute-force protection (django-axes) ──────────────────────────────────────
 AUTHENTICATION_BACKENDS = [
     'axes.backends.AxesStandaloneBackend',
     'django.contrib.auth.backends.ModelBackend',
 ]
-# VULNERABLE: No brute force limit
-AXES_FAILURE_LIMIT = 999
-AXES_COOLOFF_TIME = 0
+AXES_FAILURE_LIMIT    = 5         # Lock after 5 failed attempts
+AXES_COOLOFF_TIME     = 1         # Cooloff 1 hour
 AXES_LOCKOUT_TEMPLATE = 'accounts/locked.html'
 AXES_RESET_ON_SUCCESS = True
 
-MEDIA_ROOT = BASE_DIR / 'media_private'
-MEDIA_URL = '/media/'
-# VULNERABLE: No file size limit
-FILE_UPLOAD_MAX_MEMORY_SIZE = 999999999
-DATA_UPLOAD_MAX_MEMORY_SIZE = 999999999
+# ── File upload security ──────────────────────────────────────────────────────
+# Files are stored in media_private/ which is NOT served by Django's
+# static/media URL — preventing direct web access to uploaded files.
+# Individual file validation (extension, MIME, size) happens in RoomForm.clean_image().
+MEDIA_ROOT = BASE_DIR / 'media_private'   # outside web root
+MEDIA_URL  = '/media/'                    # only served in dev; use nginx X-Accel-Redirect in prod
 
-STATIC_URL = '/static/'
+FILE_UPLOAD_MAX_MEMORY_SIZE = 5 * 1024 * 1024   # 5 MB hard cap (request layer)
+DATA_UPLOAD_MAX_MEMORY_SIZE = 5 * 1024 * 1024   # 5 MB
+
+# ── Static files ──────────────────────────────────────────────────────────────
+STATIC_URL      = '/static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
-STATIC_ROOT = BASE_DIR / 'staticfiles'
+STATIC_ROOT     = BASE_DIR / 'staticfiles'
 
+# ── Logging ───────────────────────────────────────────────────────────────────
 _log_dir = BASE_DIR / 'logs'
 _log_dir.mkdir(exist_ok=True)
 
@@ -141,16 +152,21 @@ LOGGING = {
         'console': {'class': 'logging.StreamHandler', 'formatter': 'security'},
     },
     'loggers': {
-        'security': {'handlers': ['security_file', 'console'], 'level': 'INFO', 'propagate': False},
+        'security': {
+            'handlers': ['security_file', 'console'],
+            'level': 'INFO',
+            'propagate': False,
+        },
     },
 }
 
-LOGIN_URL = '/accounts/login/'
-LOGIN_REDIRECT_URL = '/dashboard/'
+# ── URL / Auth ────────────────────────────────────────────────────────────────
+LOGIN_URL           = '/accounts/login/'
+LOGIN_REDIRECT_URL  = '/dashboard/'
 LOGOUT_REDIRECT_URL = '/accounts/login/'
 
 LANGUAGE_CODE = 'en-us'
-TIME_ZONE = 'Asia/Kuala_Lumpur'
-USE_I18N = True
-USE_TZ = True
+TIME_ZONE     = 'Asia/Kuala_Lumpur'
+USE_I18N      = True
+USE_TZ        = True
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'

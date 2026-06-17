@@ -1,8 +1,7 @@
 .env
-__pycache__/
-*.pyc
 db.sqlite3
 media_private/
+logs/
 staticfiles/
-logs/*.log
-venv/
+__pycache__/
+*.pyc
