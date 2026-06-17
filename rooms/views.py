@@ -1,5 +1,6 @@
 # rooms/views.py — HARDENED VERSION
 import logging
+import mimetypes
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_http_methods
@@ -7,6 +8,7 @@ from django.views.decorators.cache import never_cache
 from django.contrib import messages
 from django.core.paginator import Paginator
 from django.core.exceptions import PermissionDenied
+from django.http import Http404, FileResponse
 
 from .models import Room, Reservation
 from .forms import ReservationForm, AdminReservationForm, RoomForm
@@ -286,3 +288,33 @@ def reservation_checkout(request, pk):
     else:
         messages.error(request, 'Only checked-in reservations can be checked out.')
     return redirect('admin_reservations')
+
+
+# ── Secure file serving ─────────────────────────────────────────────
+@login_required
+@never_cache
+def room_photo(request, pk):
+    """
+    Serve a room photo to authenticated users only.
+
+    Why this view exists:
+      MEDIA_ROOT lives outside the web root (settings: media_private/), so
+      the web server can't reach the upload directory directly — which is
+      exactly what the file-upload security requirement asks for. Files are
+      streamed through this view instead, so:
+        * an unauthenticated request gets redirected to login,
+        * the UUID-named file path is never directly browsable,
+        * Content-Type is set explicitly (no MIME sniffing surface).
+
+      `room.image.path` is sourced only from the model's upload_to callback,
+      which generates the path from a server-side UUID — never from raw user
+      input — so there is no path-traversal surface here.
+    """
+    room = get_object_or_404(Room, pk=pk)
+    if not room.image:
+        raise Http404
+    content_type, _ = mimetypes.guess_type(room.image.name)
+    return FileResponse(
+        room.image.open('rb'),
+        content_type=content_type or 'application/octet-stream',
+    )

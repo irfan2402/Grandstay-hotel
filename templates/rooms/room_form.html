@@ -18,7 +18,7 @@
               {% if room and room.image %}
                 <div class="mb-2">
                   <small class="text-muted">Current image:</small><br>
-                  <img src="{{ room.image.url }}" alt="Room image" style="max-height:120px;border-radius:6px;">
+                  <img src="{% url 'room_photo' room.pk %}" alt="Room image" style="max-height:120px;border-radius:6px;">
                 </div>
               {% endif %}
               <input type="file" name="{{ field.html_name }}" id="{{ field.id_for_label }}"

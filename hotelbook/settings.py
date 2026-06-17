@@ -103,6 +103,7 @@ SECURE_CONTENT_TYPE_NOSNIFF  = True
 X_FRAME_OPTIONS              = 'DENY'        # Clickjacking: deny all framing
 SECURE_HSTS_SECONDS          = 31536000      # HSTS 1 year
 SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+SECURE_HSTS_PRELOAD          = True
 SECURE_SSL_REDIRECT          = not DEBUG     # Force HTTPS in production
 
 # ── Brute-force protection (django-axes) ──────────────────────────────────────
