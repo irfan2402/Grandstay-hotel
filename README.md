@@ -20,7 +20,7 @@ The application implements security controls aligned with OWASP Top 10, OWASP AS
 | Member | Role | GitHub Username |
 |--------|------|----------------|
 | Member 1 | Code Development — Functional CRUD | irfan2402 |
-| Member 2 | Security Testing — ZAP, Bandit, Penetration Test | |
+| Member 2 | Security Testing — ZAP, Bandit, Penetration Test | mika304018 |
 | Member 3 | Mitigation — OWASP Controls, Code Review Checklist | |
 | Member 4 | CI/CD — GitHub Repository Management | |
 
