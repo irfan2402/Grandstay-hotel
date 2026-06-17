@@ -1,0 +1,134 @@
+
+Report Summary
+
+┌──────────────────┬──────┬─────────────────┬─────────┐
+│      Target      │ Type │ Vulnerabilities │ Secrets │
+├──────────────────┼──────┼─────────────────┼─────────┤
+│ requirements.txt │ pip  │       30        │    -    │
+└──────────────────┴──────┴─────────────────┴─────────┘
+Legend:
+- '-': Not scanned
+- '0': Clean (no security findings detected)
+
+
+requirements.txt (pip)
+======================
+Total: 30 (UNKNOWN: 0, LOW: 9, MEDIUM: 8, HIGH: 12, CRITICAL: 1)
+
+┌─────────┬────────────────┬──────────┬────────┬───────────────────┬───────────────────────┬──────────────────────────────────────────────────────────────┐
+│ Library │ Vulnerability  │ Severity │ Status │ Installed Version │     Fixed Version     │                            Title                             │
+├─────────┼────────────────┼──────────┼────────┼───────────────────┼───────────────────────┼──────────────────────────────────────────────────────────────┤
+│ Django  │ CVE-2025-64459 │ CRITICAL │ fixed  │ 5.2.2             │ 5.2.8, 5.1.14, 4.2.26 │ django: Django SQL injection                                 │
+│         │                │          │        │                   │                       │ https://avd.aquasec.com/nvd/cve-2025-64459                   │
+│         ├────────────────┼──────────┤        │                   ├───────────────────────┼──────────────────────────────────────────────────────────────┤
+│         │ CVE-2025-57833 │ HIGH     │        │                   │ 4.2.24, 5.1.12, 5.2.6 │ django: Django SQL injection in FilteredRelation column      │
+│         │                │          │        │                   │                       │ aliases                                                      │
+│         │                │          │        │                   │                       │ https://avd.aquasec.com/nvd/cve-2025-57833                   │
+│         ├────────────────┤          │        │                   ├───────────────────────┼──────────────────────────────────────────────────────────────┤
+│         │ CVE-2025-59681 │          │        │                   │ 4.2.25, 5.1.13, 5.2.7 │ django: Potential SQL injection in QuerySet.annotate(),      │
+│         │                │          │        │                   │                       │ alias(), aggregate(), and extra() on MySQL...                │
+│         │                │          │        │                   │                       │ https://avd.aquasec.com/nvd/cve-2025-59681                   │
+│         ├────────────────┤          │        │                   ├───────────────────────┼──────────────────────────────────────────────────────────────┤
+│         │ CVE-2025-64458 │          │        │                   │ 5.2.8, 5.1.14, 4.2.26 │ Django: Denial-of-service vulnerability in Django on Windows │
+│         │                │          │        │                   │                       │ https://avd.aquasec.com/nvd/cve-2025-64458                   │
+│         ├────────────────┤          │        │                   ├───────────────────────┼──────────────────────────────────────────────────────────────┤
+│         │ CVE-2026-1207  │          │        │                   │ 6.0.2, 5.2.11, 4.2.28 │ Django: Django: SQL Injection via RasterField band index     │
+│         │                │          │        │                   │                       │ parameter                                                    │
+│         │                │          │        │                   │                       │ https://avd.aquasec.com/nvd/cve-2026-1207                    │
+│         ├────────────────┤          │        │                   │                       ├──────────────────────────────────────────────────────────────┤
+│         │ CVE-2026-1287  │          │        │                   │                       │ Django: Django: SQL Injection via crafted column aliases     │
+│         │                │          │        │                   │                       │ https://avd.aquasec.com/nvd/cve-2026-1287                    │
+│         ├────────────────┤          │        │                   ├───────────────────────┼──────────────────────────────────────────────────────────────┤
+│         │ CVE-2026-25673 │          │        │                   │ 6.0.3, 5.2.12, 4.2.29 │ django: Django: Denial of Service via slow URL normalization │
+│         │                │          │        │                   │                       │ on Windows                                                   │
+│         │                │          │        │                   │                       │ https://avd.aquasec.com/nvd/cve-2026-25673                   │
+│         ├────────────────┤          │        │                   ├───────────────────────┼──────────────────────────────────────────────────────────────┤
+│         │ CVE-2026-33034 │          │        │                   │ 6.0.4, 5.2.13, 4.2.30 │ Django: Django: Denial of Service via missing or understated │
+│         │                │          │        │                   │                       │ Content-Length header in...                                  │
+│         │                │          │        │                   │                       │ https://avd.aquasec.com/nvd/cve-2026-33034                   │
+│         ├────────────────┤          │        │                   │                       ├──────────────────────────────────────────────────────────────┤
+│         │ CVE-2026-3902  │          │        │                   │                       │ Django: Django: Header spoofing via ambiguous header mapping │
+│         │                │          │        │                   │                       │ https://avd.aquasec.com/nvd/cve-2026-3902                    │
+│         ├────────────────┼──────────┤        │                   ├───────────────────────┼──────────────────────────────────────────────────────────────┤
+│         │ CVE-2025-13372 │ MEDIUM   │        │                   │ 5.2.9, 5.1.15, 4.2.27 │ django: Django: SQL injection in FilteredRelation column     │
+│         │                │          │        │                   │                       │ aliases                                                      │
+│         │                │          │        │                   │                       │ https://avd.aquasec.com/nvd/cve-2025-13372                   │
+│         ├────────────────┤          │        │                   │                       ├──────────────────────────────────────────────────────────────┤
+│         │ CVE-2025-64460 │          │        │                   │                       │ Django: Django: Algorithmic complexity in XML Deserializer   │
+│         │                │          │        │                   │                       │ leads to denial of service...                                │
+│         │                │          │        │                   │                       │ https://avd.aquasec.com/nvd/cve-2025-64460                   │
+│         ├────────────────┤          │        │                   ├───────────────────────┼──────────────────────────────────────────────────────────────┤
+│         │ CVE-2026-1312  │          │        │                   │ 6.0.2, 5.2.11, 4.2.28 │ Django: Django: SQL injection via crafted column aliases in  │
+│         │                │          │        │                   │                       │ QuerySet.order_by()                                          │
+│         │                │          │        │                   │                       │ https://avd.aquasec.com/nvd/cve-2026-1312                    │
+│         ├────────────────┤          │        │                   ├───────────────────────┼──────────────────────────────────────────────────────────────┤
+│         │ CVE-2026-33033 │          │        │                   │ 6.0.4, 5.2.13, 4.2.30 │ Django: Django: Performance degradation via excessive        │
+│         │                │          │        │                   │                       │ whitespace in multipart uploads                              │
+│         │                │          │        │                   │                       │ https://avd.aquasec.com/nvd/cve-2026-33033                   │
+│         ├────────────────┤          │        │                   ├───────────────────────┼──────────────────────────────────────────────────────────────┤
+│         │ CVE-2026-5766  │          │        │                   │ 6.0.5, 5.2.14         │ django: Django: Service degradation via understated          │
+│         │                │          │        │                   │                       │ Content-Length header in ASGI requests                       │
+│         │                │          │        │                   │                       │ https://avd.aquasec.com/nvd/cve-2026-5766                    │
+│         ├────────────────┼──────────┤        │                   ├───────────────────────┼──────────────────────────────────────────────────────────────┤
+│         │ CVE-2025-13473 │ LOW      │        │                   │ 6.0.2, 5.2.11, 4.2.28 │ Django: Django: User enumeration via timing attack in        │
+│         │                │          │        │                   │                       │ mod_wsgi authentication                                      │
+│         │                │          │        │                   │                       │ https://avd.aquasec.com/nvd/cve-2025-13473                   │
+│         ├────────────────┤          │        │                   │                       ├──────────────────────────────────────────────────────────────┤
+│         │ CVE-2025-14550 │          │        │                   │                       │ Django: Django: Denial of Service via crafted request with   │
+│         │                │          │        │                   │                       │ duplicate headers                                            │
+│         │                │          │        │                   │                       │ https://avd.aquasec.com/nvd/cve-2025-14550                   │
+│         ├────────────────┤          │        │                   ├───────────────────────┼──────────────────────────────────────────────────────────────┤
+│         │ CVE-2025-59682 │          │        │                   │ 4.2.25, 5.1.13, 5.2.7 │ django: Potential partial directory-traversal via            │
+│         │                │          │        │                   │                       │ archive.extract()                                            │
+│         │                │          │        │                   │                       │ https://avd.aquasec.com/nvd/cve-2025-59682                   │
+│         ├────────────────┤          │        │                   ├───────────────────────┼──────────────────────────────────────────────────────────────┤
+│         │ CVE-2026-1285  │          │        │                   │ 6.0.2, 5.2.11, 4.2.28 │ Django: Django: Denial of Service via crafted HTML inputs    │
+│         │                │          │        │                   │                       │ https://avd.aquasec.com/nvd/cve-2026-1285                    │
+│         ├────────────────┤          │        │                   ├───────────────────────┼──────────────────────────────────────────────────────────────┤
+│         │ CVE-2026-25674 │          │        │                   │ 6.0.3, 5.2.12, 4.2.29 │ django: Django: Incorrect file permissions due to race       │
+│         │                │          │        │                   │                       │ condition                                                    │
+│         │                │          │        │                   │                       │ https://avd.aquasec.com/nvd/cve-2026-25674                   │
+│         ├────────────────┤          │        │                   ├───────────────────────┼──────────────────────────────────────────────────────────────┤
+│         │ CVE-2026-35192 │          │        │                   │ 6.0.5, 5.2.14         │ Django: Django: Session theft due to improper cookie         │
+│         │                │          │        │                   │                       │ handling with cached pages...                                │
+│         │                │          │        │                   │                       │ https://avd.aquasec.com/nvd/cve-2026-35192                   │
+│         ├────────────────┤          │        │                   ├───────────────────────┼──────────────────────────────────────────────────────────────┤
+│         │ CVE-2026-4277  │          │        │                   │ 6.0.4, 5.2.13, 4.2.30 │ Django: Django: Privilege Abuse via Forged POST Data in      │
+│         │                │          │        │                   │                       │ GenericInlineModelAdmin                                      │
+│         │                │          │        │                   │                       │ https://avd.aquasec.com/nvd/cve-2026-4277                    │
+│         ├────────────────┤          │        │                   │                       ├──────────────────────────────────────────────────────────────┤
+│         │ CVE-2026-4292  │          │        │                   │                       │ Django: Django: Unauthorized instance creation via forged    │
+│         │                │          │        │                   │                       │ POST data in Admin changelist...                             │
+│         │                │          │        │                   │                       │ https://avd.aquasec.com/nvd/cve-2026-4292                    │
+│         ├────────────────┤          │        │                   ├───────────────────────┼──────────────────────────────────────────────────────────────┤
+│         │ CVE-2026-6907  │          │        │                   │ 6.0.5, 5.2.14         │ django: Django: Information Disclosure via erroneous caching │
+│         │                │          │        │                   │                       │ of Vary header with asterisk...                              │
+│         │                │          │        │                   │                       │ https://avd.aquasec.com/nvd/cve-2026-6907                    │
+├─────────┼────────────────┼──────────┤        ├───────────────────┼───────────────────────┼──────────────────────────────────────────────────────────────┤
+│ Pillow  │ CVE-2025-48379 │ HIGH     │        │ 11.2.1            │ 11.3.0                │ python-pillow: pillow: Pillow DDS Heap Buffer Overflow       │
+│         │                │          │        │                   │                       │ https://avd.aquasec.com/nvd/cve-2025-48379                   │
+│         ├────────────────┤          │        │                   ├───────────────────────┼──────────────────────────────────────────────────────────────┤
+│         │ CVE-2026-25990 │          │        │                   │ 12.1.1                │ pillow: Pillow: Out-of-bounds Write via Specially Crafted    │
+│         │                │          │        │                   │                       │ PSD Image                                                    │
+│         │                │          │        │                   │                       │ https://avd.aquasec.com/nvd/cve-2026-25990                   │
+│         ├────────────────┤          │        │                   ├───────────────────────┼──────────────────────────────────────────────────────────────┤
+│         │ CVE-2026-40192 │          │        │                   │ 12.2.0                │ Pillow: Pillow: Denial of Service via decompression bomb in  │
+│         │                │          │        │                   │                       │ FITS image processing...                                     │
+│         │                │          │        │                   │                       │ https://avd.aquasec.com/nvd/cve-2026-40192                   │
+│         ├────────────────┤          │        │                   │                       ├──────────────────────────────────────────────────────────────┤
+│         │ CVE-2026-42311 │          │        │                   │                       │ Pillow is a Python imaging library. From version 10.3.0 to   │
+│         │                │          │        │                   │                       │ before vers...                                               │
+│         │                │          │        │                   │                       │ https://avd.aquasec.com/nvd/cve-2026-42311                   │
+│         ├────────────────┼──────────┤        │                   │                       ├──────────────────────────────────────────────────────────────┤
+│         │ CVE-2026-42308 │ MEDIUM   │        │                   │                       │ Pillow: python: Pillow: Denial of Service via integer        │
+│         │                │          │        │                   │                       │ overflow in font processing...                               │
+│         │                │          │        │                   │                       │ https://avd.aquasec.com/nvd/cve-2026-42308                   │
+│         ├────────────────┤          │        │                   │                       ├──────────────────────────────────────────────────────────────┤
+│         │ CVE-2026-42309 │          │        │                   │                       │ Pillow: Pillow: Denial of Service via specially crafted      │
+│         │                │          │        │                   │                       │ coordinate input                                             │
+│         │                │          │        │                   │                       │ https://avd.aquasec.com/nvd/cve-2026-42309                   │
+│         ├────────────────┤          │        │                   │                       ├──────────────────────────────────────────────────────────────┤
+│         │ CVE-2026-42310 │          │        │                   │                       │ Pillow: Pillow: Denial of Service via malicious PDF          │
+│         │                │          │        │                   │                       │ processing                                                   │
+│         │                │          │        │                   │                       │ https://avd.aquasec.com/nvd/cve-2026-42310                   │
+└─────────┴────────────────┴──────────┴────────┴───────────────────┴───────────────────────┴──────────────────────────────────────────────────────────────┘
